@@ -27,7 +27,7 @@ class TestUserAuth:
         assert "user_id" in response2.json(), "Не вірний user_di у response2"
         user_id_from_check_method = response2.json()["user_id"]
 
-        assert user_id_from_check_method == user_id_from_auth_method, "User_id не співпадають"
+        assert user_id_from_auth_method == user_id_from_check_method, "User_id не співпадають"
 
     exclude_params = [
         ("no_cookie"),

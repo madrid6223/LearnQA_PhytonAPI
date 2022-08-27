@@ -1,7 +1,8 @@
 import pytest
 import requests
+from lib.base_case import BaseCase
 
-class TestUserAuth:
+class TestUserAuth(DaseCase):
     exclude_params = [
         ("no_cookie"),
         ("no_token")
@@ -14,13 +15,12 @@ class TestUserAuth:
         }
         response1 = requests.post("https://playground.learnqa.ru/api/user/login", data=data)
 
-        assert "auth_sid" in response1.cookies, "Не вірний auth cookie"
-        assert "x-csrf-token" in response1.headers, "Не вірний CSRF"
-        assert "user_id" in response1.json(), "Не вірний user_id"
+        self.auth_sid = self.get_cookie(response1, "auth_sid")
+        self.token = self.get_header(response1, "x-csrf-token")
 
-        self.auth_sid = response1.cookies.get("auth_sid")
-        self.token = response1.headers.get("x-csrf-token")
-        self.user_id_from_auth_method = response1.json()["user_id"]
+        self.user_id_from_auth_method = self.get_json_value(response1, "user_id")
+        #assert "user_id" in response1.json(), "Не вірний user_id"
+        #self.user_id_from_auth_method = response1.json()["user_id"]
 
     def test_auth_user(self):
 
@@ -30,10 +30,11 @@ class TestUserAuth:
             cookies={"auth_sid":self.auth_sid}
         )
 
-        assert "self.user_id" in response2.json(), "Не вірний user_di у response2"
+        assert "self.user_id" in response2.json(), "Не вірний user_id у response2"
         user_id_from_check_method = response2.json()["user_id"]
+        print(user_id_from_check_method)
 
-        assert user_id_from_check_method == user_id_from_auth_method, "User_id не співпадають"
+        assert self.user_id_from_auth_method == user_id_from_check_method, "User_id не співпадають"
 
     @pytest.mark.parametrize('condition', exclude_params)
     def test_negative_auth_check(self, condition):
