@@ -29,13 +29,13 @@ class TestUserAuth:
 
         assert user_id_from_check_method == user_id_from_auth_method, "User_id не співпадають"
 
-    exlude_params = [
+    exclude_params = [
         ("no_cookie"),
         ("no_token")
     ]
 
-    @pytest.mark.parametrize('condition', exlude_params)
-    def test_negative_auth_check(self):
+    @pytest.mark.parametrize('condition', exclude_params)
+    def test_negative_auth_check(self, condition):
         def test_auth_user(self):
             data = {
                 'email': 'vinkotov@example.com',
@@ -50,5 +50,23 @@ class TestUserAuth:
 
             auth_sid = response1.cookies.get("auth_sid")
             token = response1.headers.get("x-csrf-token")
-            user_id_from_auth_method = response1.json()["user_id"]
+            #user_id_from_auth_method = response1.json()["user_id"]
+
+            if condition == "no_cookie":
+                response2 = requests.get(
+                    "https://playground.learnqa.ru/api/user/auth",
+                    headers={"x-csrf-token":token}
+                )
+
+            else:
+                response2 = requests.get(
+                    "https://playground.learnqa.ru/api/user/auth",
+                    headers={"auth_sid": auth_sid}
+                )
+
+            assert "user_id" in response1.json(), "user_id немає у response1"
+
+            user_id_from_check_method = response2.json()["user_id"]
+
+            assert user_id_from_check_method==0, f"user_id авторизовано з перемінно {condition}"
 
