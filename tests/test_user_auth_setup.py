@@ -1,8 +1,9 @@
 import pytest
 import requests
 from lib.base_case import BaseCase
+from lib.assertions import Assertions
 
-class TestUserAuth(DaseCase):
+class TestUserAuth(BaseCase):
     exclude_params = [
         ("no_cookie"),
         ("no_token")
@@ -30,11 +31,17 @@ class TestUserAuth(DaseCase):
             cookies={"auth_sid":self.auth_sid}
         )
 
-        assert "self.user_id" in response2.json(), "Не вірний user_id у response2"
-        user_id_from_check_method = response2.json()["user_id"]
-        print(user_id_from_check_method)
+        Assertions.assert_json_value_by_name(
+            response2,
+            "user_id",
+            self.user_id_from_auth_method,
+            "User_id не співпадають у методах auth та check"
+        )
 
-        assert self.user_id_from_auth_method == user_id_from_check_method, "User_id не співпадають"
+        #assert "self.user_id" in response2.json(), "Не вірний user_id у response2"
+        #user_id_from_check_method = response2.json()["user_id"]
+        #print(user_id_from_check_method)
+        #assert self.user_id_from_auth_method == user_id_from_check_method, "User_id не співпадають"
 
     @pytest.mark.parametrize('condition', exclude_params)
     def test_negative_auth_check(self, condition):
@@ -51,10 +58,14 @@ class TestUserAuth(DaseCase):
                     "https://playground.learnqa.ru/api/user/auth",
                     headers={"auth_sid": self.auth_sid}
                 )
+            Assertions.assert_json_value_by_name(
+                response2,
+                "user_id",
+                0,
+                f"user_id авторизовано з перемінно {condition}"
+            )
 
-            assert "user_id" in self.response1.json(), "user_id немає у response1"
-
-            user_id_from_check_method = response2.json()["user_id"]
-
-            assert user_id_from_check_method==0, f"user_id авторизовано з перемінно {condition}"
+            #assert "user_id" in self.response1.json(), "user_id немає у response1"
+            #user_id_from_check_method = response2.json()["user_id"]
+            #assert user_id_from_check_method==0, f"user_id авторизовано з перемінно {condition}"
 
